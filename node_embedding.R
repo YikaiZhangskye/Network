@@ -1,11 +1,11 @@
 n = 1000
 k = 2
 pi = c(0.5,0.5)
-c = 5
+c = 15
 lambda = 0.8
 num_paths =1
 length_path = 10
-emb_dim = 8
+emb_dim = 5
 winsize = 5
 p = c/n
 q = c*(1-lambda)/n
@@ -63,28 +63,25 @@ D_p = matrix(D_p,ncol=2,byrow = TRUE)
 D_m = matrix(D_m,ncol=2,byrow = TRUE)
 
 #Optimize
+rate = 0.01
 mu = matrix(rnorm(n = n*emb_dim,mean = 0,sd = 1),nrow = n,ncol = emb_dim)
 for (i in 1:300){
   xp = sample(1:dim(D_p)[1],0.2*dim(D_p)[1])
-  D_p_s = D_p[xp,]
   xm = sample(1:dim(D_m)[1],0.2*dim(D_m)[1])
-  D_m_s = D_m[xm,]
-  for(j in which(degree!=0)){
-    temp1 =temp2 = matrix(0,nrow = 1,ncol = emb_dim)
-    if(length(D_p_s[which(D_p_s[, 1] == j),])==0 ||length(D_m_s[which(D_m_s[, 1] == j),])==0){
-      break
-    }
-    else{
-    for(k in t(D_p_s[which(D_p_s[,1]==j),])[,2]){
-      temp1 = -mu[k,]* (exp( -mu[j,] %*% mu[k,])/(1+exp(-mu[j,] %*% mu[k,])))
-    }
-
-    for(k in t(D_m_s[which(D_m_s[,1]==j),])[,2]){
-      temp2 = mu[k,]* (exp( mu[j,] %*% mu[k,])/(1+exp(mu[j,] %*% mu[k,])))
-    }
-    }
-    mu[j] = mu[j]-0.1*(temp1+temp2)
+  temp1 =temp2 = matrix(0,nrow = n,ncol = emb_dim)
+  for(j in xp){
+    ii = D_p[j,][1]
+    jj = D_p[j,][2]
+    temp1[ii,] = temp1[ii,] + (exp( -mu[ii,] %*% mu[jj,])/(1+exp(-mu[ii,] %*% mu[jj,]))) %*% (-mu[jj,])
+    temp1[jj,] = temp1[jj,] + (exp( -mu[jj,] %*% mu[ii,])/(1+exp(-mu[jj,] %*% mu[ii,]))) %*% (-mu[ii,])
   }
+  for(j in xm){
+    ii = D_m[j,][1]
+    jj = D_m[j,][2]
+    temp2[ii,] = temp2[ii,] + (exp( mu[ii,] %*% mu[jj,])/(1+exp(mu[ii,] %*% mu[jj,]))) %*% (mu[jj,])
+    temp2[jj,] = temp2[jj,] + (exp( mu[jj,] %*% mu[ii,])/(1+exp(mu[jj,] %*% mu[ii,]))) %*% (mu[ii,])
+  }
+  mu = mu - rate*(temp1+temp2)
 }
 
 chat = kmeans(mu,2)$cluster
