@@ -5,7 +5,7 @@ c = 15
 lambda = 0.8
 num_paths =1
 length_path = 10
-emb_dim = 3
+emb_dim = 5
 winsize = 5
 p = c/n
 q = c*(1-lambda)/n
@@ -73,43 +73,27 @@ D_p = matrix(D_p,ncol=2,byrow = TRUE)
 #D-:
 D_m = matrix(D_m,ncol=2,byrow = TRUE)
 
-#optimize
-rate = 0.005
-mu = matrix(rnorm(n = n*emb_dim,mean = 0,sd = 1),nrow = n,ncol = emb_dim)
-for (i in 1:100){
-  xp = sample(1:dim(D_p)[1],0.2*dim(D_p)[1])
-  xm = sample(1:dim(D_m)[1],0.2*dim(D_m)[1])
-  temp1 =temp2 = matrix(0,nrow = n,ncol = emb_dim)
-  for(j in xp){
-    ii = D_p[j,][1]
-    jj = D_p[j,][2]
-    temp1[ii,] = temp1[ii,] + (exp( -mu[ii,] %*% mu[jj,])/(1+exp(-mu[ii,] %*% mu[jj,]))) %*% (-mu[jj,])
-    temp1[jj,] = temp1[jj,] + (exp( -mu[jj,] %*% mu[ii,])/(1+exp(-mu[jj,] %*% mu[ii,]))) %*% (-mu[ii,])
+G = matrix(0,ncol = n,nrow = n)
+for(i in 1:n){
+  for (j in i:n){
+    temp1 = length(which(D_p==c(i,j)))
+    temp2 = length(which(D_m==c(i,j)))
+    if(temp1*temp2 != 0){
+      G[i,j]=G[j,i]=log(temp1/temp2)
+    }
+    else{
+      G[i,j]=G[j,i]=0
+    }
   }
-  for(j in xm){
-    ii = D_m[j,][1]
-    jj = D_m[j,][2]
-    temp2[ii,] = temp2[ii,] + (exp( mu[ii,] %*% mu[jj,])/(1+exp(mu[ii,] %*% mu[jj,]))) %*% (mu[jj,])
-    temp2[jj,] = temp2[jj,] + (exp( mu[jj,] %*% mu[ii,])/(1+exp(mu[jj,] %*% mu[ii,]))) %*% (mu[ii,])
-  }
-  mu = mu - rate*(temp1+temp2)
 }
+svd_c = svd(G)
+u = svd_c$d
+dim = sum(u>5)
+mu = svd_c$u[,1:3]
 
-chat = kmeans(mu,2)$cluster
+
+k = 2
+chat = kmeans(mu,k,iter.max = 1000)$cluster
 acc = max( mean((y+1)==chat), mean((-y+2)==chat ))
 acc
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
