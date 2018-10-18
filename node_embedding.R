@@ -5,7 +5,11 @@ c = 15
 lambda = 0.8
 num_paths =1
 length_path = 10
+<<<<<<< HEAD
 emb_dim = 3
+=======
+emb_dim = 5
+>>>>>>> 9344299d2361498fd67a17820becb0a1e7ed14fb
 winsize = 5
 p = c/n
 q = c*(1-lambda)/n
@@ -73,8 +77,13 @@ D_p = matrix(D_p,ncol=2,byrow = TRUE)
 #D-:
 D_m = matrix(D_m,ncol=2,byrow = TRUE)
 
+<<<<<<< HEAD
 #optimize
 rate = 0.005
+=======
+#Optimize
+rate = 0.01
+>>>>>>> 9344299d2361498fd67a17820becb0a1e7ed14fb
 mu = matrix(rnorm(n = n*emb_dim,mean = 0,sd = 1),nrow = n,ncol = emb_dim)
 for (i in 1:100){
   xp = sample(1:dim(D_p)[1],0.2*dim(D_p)[1])
